@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.DS_Store
+
+# Build outputs
+.next/
+dist/
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+*.log
+```
