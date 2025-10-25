@@ -15,10 +15,10 @@
 ## 📋 Phase 1: Foundation & Database (Week 1-2)
 
 ### Database Setup
-- [ ] Install PostgreSQL locally
-- [ ] Create database: `job_assistant_db`
-- [ ] Install pgvector extension
-- [ ] Test database connection
+- [x] Install PostgreSQL locally
+- [x] Create database: `job_assistant_db`
+- [x] Install pgvector extension
+- [x] Test database connection
 
 ### Backend Database Integration
 - [ ] Create database connection file (`app/db/database.py`)
