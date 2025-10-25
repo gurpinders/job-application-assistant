@@ -27,11 +27,11 @@
 - [x] Add database URL to backend `.env`
 
 ### User Model & Authentication
-- [ ] Create User model (`app/models/user.py`)
-- [ ] Create user schema (`app/schemas/user.py`)
-- [ ] Set up Alembic for database migrations
-- [ ] Create initial migration for users table
-- [ ] Run migration to create users table
+- [x] Create User model (`app/models/user.py`)
+- [x] Create user schema (`app/schemas/user.py`)
+- [x] Set up Alembic for database migrations
+- [x] Create initial migration for users table
+- [x] Run migration to create users table
 
 ### Authentication Backend
 - [ ] Create password hashing utilities (`app/core/security.py`)
