@@ -21,10 +21,10 @@
 - [x] Test database connection
 
 ### Backend Database Integration
-- [ ] Create database connection file (`app/db/database.py`)
-- [ ] Set up SQLAlchemy engine and session
-- [ ] Create Base model for all tables
-- [ ] Add database URL to backend `.env`
+- [x] Create database connection file (`app/db/database.py`)
+- [x] Set up SQLAlchemy engine and session
+- [x] Create Base model for all tables
+- [x] Add database URL to backend `.env`
 
 ### User Model & Authentication
 - [ ] Create User model (`app/models/user.py`)
