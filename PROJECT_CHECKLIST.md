@@ -34,11 +34,11 @@
 - [x] Run migration to create users table
 
 ### Authentication Backend
-- [ ] Create password hashing utilities (`app/core/security.py`)
-- [ ] Create JWT token utilities
-- [ ] Build user registration endpoint (`POST /api/auth/register`)
-- [ ] Build user login endpoint (`POST /api/auth/login`)
-- [ ] Test auth endpoints in FastAPI docs (`/docs`)
+- [x] Create password hashing utilities (`app/core/security.py`)
+- [x] Create JWT token utilities
+- [x] Build user registration endpoint (`POST /api/auth/register`)
+- [x] Build user login endpoint (`POST /api/auth/login`)
+- [x] Test auth endpoints in FastAPI docs (`/docs`)
 
 ### Frontend Authentication Setup
 - [ ] Install and configure NextAuth.js v5
