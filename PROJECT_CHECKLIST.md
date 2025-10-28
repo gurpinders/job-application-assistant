@@ -41,14 +41,14 @@
 - [x] Test auth endpoints in FastAPI docs (`/docs`)
 
 ### Frontend Authentication Setup
-- [ ] Install and configure NextAuth.js v5
-- [ ] Create auth configuration file
-- [ ] Build registration page (`app/register/page.tsx`)
-- [ ] Build login page (`app/login/page.tsx`)
-- [ ] Create registration form with validation
-- [ ] Create login form with validation
-- [ ] Test user registration flow
-- [ ] Test user login flow
+- [x] Install and configure NextAuth.js v5
+- [x] Create auth configuration file
+- [x] Build registration page (`app/register/page.tsx`)
+- [x] Build login page (`app/login/page.tsx`)
+- [x] Create registration form with validation
+- [x] Create login form with validation
+- [x] Test user registration flow
+- [x] Test user login flow
 
 ### Basic UI Layout
 - [ ] Create main layout with navigation
