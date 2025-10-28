@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
 from sqlalchemy import text
+from app.api.auth import router as auth_router
 
 app = FastAPI(title="Job Application Assistant API")
 
@@ -19,6 +20,8 @@ async def root():
         "message": "Job Application Assistant API",
         "status": "running"
     }
+
+app.include_router(auth_router)
 
 @app.get("/api/test-db")
 async def test_database():
