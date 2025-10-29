@@ -48,14 +48,14 @@
 - [x] Create registration form with validation
 - [x] Create login form with validation
 - [x] Test user registration flow
-- [] Test user login flow
+- [x] Test user login flow
 
 ### Basic UI Layout
-- [ ] Create main layout with navigation
-- [ ] Add shadcn/ui components (Button, Input, Card)
-- [ ] Create dashboard page (protected route)
-- [ ] Add logout functionality
-- [ ] Style with Tailwind CSS
+- [x] Create main layout with navigation
+- [x] Add shadcn/ui components (Button, Input, Card)
+- [x] Create dashboard page (protected route)
+- [x] Add logout functionality
+- [x] Style with Tailwind CSS
 
 ---
 
