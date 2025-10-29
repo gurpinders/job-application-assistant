@@ -48,7 +48,7 @@
 - [x] Create registration form with validation
 - [x] Create login form with validation
 - [x] Test user registration flow
-- [x] Test user login flow
+- [] Test user login flow
 
 ### Basic UI Layout
 - [ ] Create main layout with navigation
