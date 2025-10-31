@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
 from sqlalchemy import text
 from app.api.auth import router as auth_router
+from app.api.resume import router as resume_router
+
 
 app = FastAPI(title="Job Application Assistant API")
 
@@ -14,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {
@@ -22,6 +25,8 @@ async def root():
     }
 
 app.include_router(auth_router)
+app.include_router(resume_router)
+
 
 @app.get("/api/test-db")
 async def test_database():
@@ -33,7 +38,7 @@ async def test_database():
         with engine.connect() as connection:
             result = connection.execute(text("SELECT version();"))
             version = result.fetchone()[0]
-        
+
         return {
             "status": "success",
             "message": "Database connected successfully!",
