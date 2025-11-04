@@ -10,7 +10,6 @@ export default function ResumeUploadPage(){
     const [uploading, setUploading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const { data: session } = useSession();
-    console.log('Session:', session);
     const router = useRouter();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

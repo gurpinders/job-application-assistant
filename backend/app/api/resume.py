@@ -12,6 +12,7 @@ import os
 
 router = APIRouter(prefix="/api/resume", tags=["resume"])
 
+
 @router.post("/upload", response_model=ResumeAnalysisResponse, status_code=status.HTTP_201_CREATED)
 def upload_resume(user_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
     if (not file.filename.endswith(".pdf") and not file.filename.endswith(".docx")):
@@ -29,16 +30,29 @@ def upload_resume(user_id: int, file: UploadFile = File(...), db: Session = Depe
     if file.filename.endswith(".docx"):
         resume_text = extract_text_from_docx(str(file_path))
     analysis = analyze_resume_with_ai(resume_text)
-    resume_analysis = ResumeAnalysis (
-        user_id = user_id,
-        filename = file.filename,
-        file_path = str(file_path),
-        overall_score = analysis["overall_score"],
-        analysis_text = analysis["analysis_text"],
-        suggestions = analysis["suggestions"]
+    resume_analysis = ResumeAnalysis(
+        user_id=user_id,
+        filename=file.filename,
+        file_path=str(file_path),
+        overall_score=analysis["overall_score"],
+        analysis_text=analysis["analysis_text"],
+        suggestions=analysis["suggestions"]
     )
     db.add(resume_analysis)
     db.commit()
     db.refresh(resume_analysis)
     return resume_analysis
-    
+
+
+@router.get("/{analysis_id}", response_model=ResumeAnalysisResponse)
+def get_resume_analysis(analysis_id: int, db: Session = Depends(get_db)):
+    analysis = db.query(ResumeAnalysis).filter(
+        ResumeAnalysis.id == analysis_id).first()
+
+    if not analysis:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Resume analysis not found"
+        )
+
+    return analysis
