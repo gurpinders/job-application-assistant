@@ -62,29 +62,29 @@
 ## 📋 Phase 2: First Feature - Resume Analyzer (Week 3)
 
 ### Backend - Resume Upload & Storage
-- [ ] Set up file upload handling (multipart/form-data)
-- [ ] Install PyPDF2 and python-docx
-- [ ] Create resume parser for PDF files
-- [ ] Create resume parser for DOCX files
-- [ ] Set up Azure Blob Storage or AWS S3
-- [ ] Create Resume model in database
-- [ ] Create resume upload endpoint (`POST /api/resumes/upload`)
+- [x] Set up file upload handling (multipart/form-data)
+- [x] Install PyPDF2 and python-docx
+- [x] Create resume parser for PDF files
+- [x] Create resume parser for DOCX files
+- [x] Set up Azure Blob Storage or AWS S3
+- [x] Create Resume model in database
+- [x] Create resume upload endpoint (`POST /api/resumes/upload`)
 
 ### Backend - OpenAI Integration
-- [ ] Get OpenAI API key
-- [ ] Add OpenAI key to `.env`
-- [ ] Install LangChain
-- [ ] Create prompt template for resume analysis
-- [ ] Build resume analysis function
-- [ ] Create analysis endpoint (`POST /api/ai/analyze-resume`)
-- [ ] Store analysis results in database
+- [x] Get OpenAI API key
+- [x] Add OpenAI key to `.env`
+- [x] Install LangChain
+- [x] Create prompt template for resume analysis
+- [x] Build resume analysis function
+- [x] Create analysis endpoint (`POST /api/ai/analyze-resume`)
+- [x] Store analysis results in database
 
 ### Frontend - Resume Upload
-- [ ] Create resume upload page
-- [ ] Build file upload component
-- [ ] Add file type validation (PDF, DOCX only)
-- [ ] Show upload progress
-- [ ] Display success/error messages
+- [x] Create resume upload page
+- [x] Build file upload component
+- [x] Add file type validation (PDF, DOCX only)
+- [x] Show upload progress
+- [x] Display success/error messages
 
 ### Frontend - Analysis Results
 - [ ] Create results display page
@@ -96,7 +96,7 @@
 ### Testing
 - [ ] Test with sample PDF resume
 - [ ] Test with sample DOCX resume
-- [ ] Test error handling (wrong file type)
+- [x] Test error handling (wrong file type)
 - [ ] Verify data saves to database
 
 ---

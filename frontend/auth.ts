@@ -26,8 +26,9 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                     );
                     if(response.data.access_token){
                         return{
-                            id: credentials.email,
-                            email: credentials.email as string,
+                            id: response.data.user.id.toString(),
+                            email: response.data.user.email,
+                            name: response.data.user.full_name,
                             accessToken: response.data.access_token
                         }
                     }
@@ -37,6 +38,22 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                 }
             }
         })
-    ]
+    ],
+    callbacks: {
+        async jwt({ token, user }) {
+            if (user) {
+                token.id = user.id
+                token.accessToken = user.accessToken
+            }
+            return token
+        },
+        async session({ session, token }) {
+            if (token && session.user) {
+                session.user.id = token.id as string
+                session.user.accessToken = token.accessToken as string
+            }
+            return session
+        }
+    }
 })
 

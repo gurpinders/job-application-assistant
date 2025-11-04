@@ -12,8 +12,6 @@ import os
 
 router = APIRouter(prefix="/api/resume", tags=["resume"])
 
-
-
 @router.post("/upload", response_model=ResumeAnalysisResponse, status_code=status.HTTP_201_CREATED)
 def upload_resume(user_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
     if (not file.filename.endswith(".pdf") and not file.filename.endswith(".docx")):

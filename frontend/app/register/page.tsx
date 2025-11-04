@@ -33,9 +33,21 @@ export default function RegisterPage() {
             
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                setError(error.response.data.detail || 'Registration failed');
+            const detail = error.response.data.detail;
+            
+                if (typeof detail === 'string') {
+                    setError(detail);
+                } 
+                // If it's an array of validation errors, get first message
+                else if (Array.isArray(detail) && detail.length > 0) {
+                    setError(detail[0].msg || 'Registration failed');
+                } 
+                // Fallback
+                else {
+                    setError('Registration failed');
+                }
             } else {
-                setError('An unexpected error occurred');
+            setError('An unexpected error occurred');
             }
         } finally{
             setLoading(false);
