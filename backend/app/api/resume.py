@@ -56,3 +56,10 @@ def get_resume_analysis(analysis_id: int, db: Session = Depends(get_db)):
         )
 
     return analysis
+
+@router.get("/user/{user_id}", response_model=list[ResumeAnalysisResponse])
+def get_user_analysis(user_id: int, db: Session = Depends(get_db)):
+    analyses = db.query(ResumeAnalysis).filter(ResumeAnalysis.user_id == user_id).order_by(ResumeAnalysis.created_at.desc()).all()
+    return analyses
+    
+
