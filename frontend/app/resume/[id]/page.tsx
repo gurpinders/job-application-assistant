@@ -73,8 +73,9 @@ export default function ResumeResultPage(){
                                 ))}
                             </ul>
                         </div>
-                        <div>
-                            <button onClick={() => router.push('/resume/upload')} className="w-full bg-blue-500 text-white py-3 px-4 rounded font-semibold hover:bg-blue-600 transition">Upload Another Resume</button>
+                        <div className="flex gap-4">
+                            <button onClick={() => router.push('/dashboard')} className="flex-1 bg-gray-500 text-white py-3 px-4 rounded font-semibold hover:bg-gray-600 transition">Back To Dashboard</button>
+                            <button onClick={() => router.push('/resume/upload')} className="flex-1 bg-blue-500 text-white py-3 px-4 rounded font-semibold hover:bg-blue-600 transition">Upload Another Resume</button>
                         </div>
                     </div>
                 </div>

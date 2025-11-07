@@ -203,7 +203,7 @@
 
 ### Results Page Polish
 - [x] Add "Upload Another Resume" button
-- [ ] Add "Back to Dashboard" button
+- [x] Add "Back to Dashboard" button
 - [ ] Add "Download Report" button (optional)
 
 ### Additional Polish Tasks
@@ -354,3 +354,4 @@ Use these prefixes for commit messages:
 ---
 
 **Remember:** This is a learning project. The goal is to understand each piece, not just to finish quickly. Quality over speed! 🎓
+
