@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 
 interface Analysis {
@@ -18,7 +18,8 @@ export default function ResumeResultPage(){
     const [error, setError] = useState<string | null>(null);
 
     const params = useParams();
-    const id = params.id
+    const id = params.id;
+    const router = useRouter();
 
     useEffect(() => {
         const fetchAnalysis = async() => {
@@ -72,9 +73,13 @@ export default function ResumeResultPage(){
                                 ))}
                             </ul>
                         </div>
+                        <div>
+                            <button onClick={() => router.push('/resume/upload')} className="w-full bg-blue-500 text-white py-3 px-4 rounded font-semibold hover:bg-blue-600 transition">Upload Another Resume</button>
+                        </div>
                     </div>
                 </div>
             )}
+
         </div>
     )
 }
