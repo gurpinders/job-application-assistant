@@ -111,8 +111,8 @@
 - [x] Handle error state
 - [x] Style results beautifully with Tailwind
 - [x] Add proper TypeScript interfaces
-- [ ] Add "Upload Another Resume" button (IN PROGRESS)
-- [ ] Add "Back to Dashboard" button
+- [x] Add "Upload Another Resume" button (IN PROGRESS)
+- [] Add "Back to Dashboard" button
 
 ### Testing
 - [x] Test with sample PDF resume
@@ -202,7 +202,7 @@
 - [x] Test card navigation to results page
 
 ### Results Page Polish
-- [ ] Add "Upload Another Resume" button
+- [x] Add "Upload Another Resume" button
 - [ ] Add "Back to Dashboard" button
 - [ ] Add "Download Report" button (optional)
 
