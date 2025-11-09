@@ -127,11 +127,11 @@
 ## ⏳ Phase 3: Additional Features (Not Started)
 
 ### Cover Letter Generator
-- [ ] Create CoverLetter model
-- [ ] Build generation endpoint (`POST /api/ai/generate-cover-letter`)
-- [ ] Create prompt template for cover letters
-- [ ] Build frontend form (job description input)
-- [ ] Display generated cover letter
+- [x] Create CoverLetter model
+- [x] Build generation endpoint (`POST /api/ai/generate-cover-letter`)
+- [x] Create prompt template for cover letters
+- [x] Build frontend form (job description input)
+- [x] Display generated cover letter
 - [ ] Add edit capability
 - [ ] Add download as PDF/DOCX
 

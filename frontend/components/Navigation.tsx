@@ -15,6 +15,7 @@ export default function Navigation(){
                 <div className="flex gap-6">
                     <Link href={"/"} className="hover:text-blue-600">Home</Link>
                     <Link href={"/resume/upload"} className="hover:text-blue-600">Upload Resume</Link>
+                    <Link href="/cover-letter/generate" className="hover:text-blue-600">Cover Letter</Link>
                     <Link href={"/dashboard"} className="hover:text-blue-600">Dashboard</Link>
                 </div>
             )}

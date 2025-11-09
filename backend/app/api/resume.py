@@ -8,10 +8,8 @@ from app.services.openai_service import analyze_resume_with_ai
 from app.db.database import get_db
 from pathlib import Path
 import shutil
-import os
 
 router = APIRouter(prefix="/api/resume", tags=["resume"])
-
 
 @router.post("/upload", response_model=ResumeAnalysisResponse, status_code=status.HTTP_201_CREATED)
 def upload_resume(user_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):

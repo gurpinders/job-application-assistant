@@ -1,6 +1,7 @@
-from app.models.resume_analysis import ResumeAnalysis
-from app.models.user import User
 from app.db.database import Base
+from app.models.user import User
+from app.models.resume_analysis import ResumeAnalysis
+from app.models.cover_letter import CoverLetter
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
