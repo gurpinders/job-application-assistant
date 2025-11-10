@@ -138,11 +138,11 @@
 ### Job Match Analyzer
 - [ ] Install sentence-transformers
 - [ ] Create embedding generation function
-- [ ] Create JobMatch model with vector field
-- [ ] Build match calculation endpoint
-- [ ] Create frontend job description input
-- [ ] Display match percentage
-- [ ] Show matching keywords
+- [x] Create JobMatch model with vector field
+- [x] Build match calculation endpoint
+- [x] Create frontend job description input
+- [x] Display match percentage
+- [x] Show matching keywords
 
 ### ATS Checker
 - [ ] Research ATS compatibility rules

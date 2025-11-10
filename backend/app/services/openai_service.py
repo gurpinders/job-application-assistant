@@ -1,6 +1,6 @@
 from openai import OpenAI
 import os
-
+import json
 
 def generate_cover_letter_with_ai(resume_text: str, job_title: str, company_name: str, job_description: str) -> str:
     key = os.getenv("OPENAI_API_KEY")
@@ -120,3 +120,39 @@ def analyze_resume_with_ai(resume_text: str) -> dict:
         "suggestions": suggestions
     }
     return result
+
+def analyze_job_match_with_ai(resume_text: str, job_description: str) -> dict:
+    key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=key)
+
+    prompt = f"""
+    You are an expert career advisor and ATS (Applicant Tracking System) specialist.
+
+    Analyze how well this candidate's resume matches the job requirements.
+
+    RESUME:
+    {resume_text}
+
+    JOB DESCRIPTION:
+    {job_description}
+
+    Provide a detailed analysis in the following JSON format:
+    {{
+        "match_percentage": <number 0-100>,
+        "matching_skills": ["skill1", "skill2", ...],
+        "missing_skills": ["skill1", "skill2", ...],
+        "suggestions": ["suggestion1", "suggestion2", ...]
+    }}
+
+    INSTRUCTIONS:
+    1. match_percentage: Rate 0-100 based on overall fit (skills, experience, qualifications)
+    2. matching_skills: List 5-8 key skills/qualifications from the resume that match the job requirements
+    3. missing_skills: List 3-5 important skills/qualifications mentioned in the job that are missing from the resume
+    4. suggestions: Provide 3-5 specific, actionable suggestions to improve the match
+
+    Return ONLY valid JSON. No additional text or explanation.
+    """
+    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}])
+    response_text = response.choices[0].message.content
+    match_data = json.loads(response_text)
+    return match_data

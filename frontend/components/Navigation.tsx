@@ -16,6 +16,7 @@ export default function Navigation(){
                     <Link href={"/"} className="hover:text-blue-600">Home</Link>
                     <Link href={"/resume/upload"} className="hover:text-blue-600">Upload Resume</Link>
                     <Link href="/cover-letter/generate" className="hover:text-blue-600">Cover Letter</Link>
+                    <Link href="/job-match" className="hover:text-blue-600">Job Match</Link>
                     <Link href={"/dashboard"} className="hover:text-blue-600">Dashboard</Link>
                 </div>
             )}
