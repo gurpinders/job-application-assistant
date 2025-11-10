@@ -156,3 +156,69 @@ def analyze_job_match_with_ai(resume_text: str, job_description: str) -> dict:
     response_text = response.choices[0].message.content
     match_data = json.loads(response_text)
     return match_data
+
+def check_ats_compatibility_with_ai(resume_text: str) -> dict:
+    key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=key)
+
+    prompt = f"""
+    You are an expert ATS (Applicant Tracking System) compatibility analyzer with deep knowledge of how recruiting software parses and scores resumes.
+
+    Analyze this resume for ATS compatibility:
+
+    RESUME TEXT:
+    {resume_text}
+
+    Provide a detailed ATS compatibility analysis in the following JSON format:
+    {{
+        "ats_score": <number 0-100>,
+        "issues_found": ["issue1", "issue2", ...],
+        "recommendations": ["recommendation1", "recommendation2", ...],
+        "is_ats_friendly": <true/false>
+    }}
+
+    EVALUATION CRITERIA:
+
+    1. **Formatting Issues** (Check for):
+    - Complex tables or columns (ATS can't parse these well)
+    - Graphics, images, or charts
+    - Headers/footers with important info
+    - Unusual fonts or special characters
+    - Text boxes or shapes
+
+    2. **Structure & Sections** (Check for):
+    - Clear section headers (Experience, Education, Skills, etc.)
+    - Proper contact information at the top
+    - Chronological work history
+    - Standard section names (not creative titles)
+
+    3. **Content Quality** (Check for):
+    - Relevant keywords and skills
+    - Clear job titles and company names
+    - Quantifiable achievements
+    - No lengthy paragraphs (use bullet points)
+
+    4. **ATS Score Calculation**:
+    - 90-100: Excellent ATS compatibility
+    - 70-89: Good, minor improvements needed
+    - 50-69: Fair, several issues to fix
+    - 0-49: Poor, major issues
+
+    5. **Pass/Fail Status**:
+    - is_ats_friendly = true if score >= 70
+    - is_ats_friendly = false if score < 70
+
+    INSTRUCTIONS:
+    - issues_found: List 3-7 specific problems found (if any)
+    - recommendations: Provide 3-7 actionable fixes
+    - Be specific and practical in recommendations
+    - If no major issues, still provide optimization tips
+
+    Return ONLY valid JSON. No additional text.
+    """
+
+    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}])
+    response_text = response.choices[0].message.content
+    ats_data = json.loads(response_text)
+    return ats_data
+    

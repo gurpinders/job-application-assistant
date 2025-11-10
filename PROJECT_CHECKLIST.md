@@ -147,7 +147,7 @@
 ### ATS Checker
 - [ ] Research ATS compatibility rules
 - [ ] Build ATS scoring algorithm
-- [ ] Create analysis endpoint
+- [x] Create analysis endpoint
 - [ ] Build frontend ATS check page
 - [ ] Display compatibility score
 - [ ] Show improvement suggestions

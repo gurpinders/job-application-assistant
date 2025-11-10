@@ -6,6 +6,7 @@ from app.api.auth import router as auth_router
 from app.api.resume import router as resume_router
 from app.api.cover_letter import router as cover_letter_router
 from app.api.job_match import router as job_match_router
+from app.api.ats_check import router as ats_check_router
 
 
 app = FastAPI(title="Job Application Assistant API")
@@ -30,6 +31,7 @@ app.include_router(auth_router)
 app.include_router(resume_router)
 app.include_router(cover_letter_router)
 app.include_router(job_match_router)
+app.include_router(ats_check_router)
 
 
 @app.get("/api/test-db")
