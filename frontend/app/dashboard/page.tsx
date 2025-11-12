@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState,useEffect } from 'react'
 import StatsCard from '@/components/StatsCard'
+import ErrorMessage from '@/components/ErrorMessage'
 import axios from 'axios'
 
 interface Analysis {
@@ -63,8 +64,8 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-500">{error}</p>
+      <div className="flex min-h-screen items-center justify-center p-8">
+        <ErrorMessage message={error} />
       </div>
     )
   }

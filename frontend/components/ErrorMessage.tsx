@@ -1,9 +1,13 @@
-export default function ErrorMessage({ message }: { message: string }) {
+interface ErrorMessageProps {
+  message: string
+}
+
+export default function ErrorMessage({ message }: ErrorMessageProps) {
   return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-4 my-4">
-      <div className="flex items-start">
-        <span className="text-red-600 text-xl mr-3">⚠️</span>
-        <p className="text-red-700">{message}</p>
+    <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+      <div className="flex items-center">
+        <span className="text-2xl mr-3">⚠️</span>
+        <p className="text-red-800 font-medium">{message}</p>
       </div>
     </div>
   )

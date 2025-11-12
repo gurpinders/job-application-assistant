@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import ErrorMessage from '@/components/ErrorMessage'
 import axios from "axios"
 
 interface Resume {
@@ -124,11 +125,7 @@ export default function CoverLetterPage(){
                         {loading ? 'Generating...' : 'Generate Cover Letter'}
                     </button>
                 </div>
-                {error && (
-                <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-6">
-                    <p className="text-red-600 text-center">{error}</p>
-                </div>
-                )}
+                {error && <ErrorMessage message={error} />}
                 {coverLetter && (
                 <div className="mt-6 bg-white rounded-lg shadow-md p-8">
                     <h2 className="text-2xl font-bold mb-4 text-gray-800">Your Cover Letter</h2>

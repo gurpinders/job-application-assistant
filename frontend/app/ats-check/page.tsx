@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import ErrorMessage from '@/components/ErrorMessage'
 import axios from "axios"
 
 interface Resume {
@@ -58,7 +59,6 @@ export default function ATSCheckPage(){
                 resume_id: selectedResumeId
             }
             )
-            
             setAtsResult(response.data)
         } catch {
             setError("Failed to check ATS compatibility. Please try again.")
@@ -107,11 +107,7 @@ export default function ATSCheckPage(){
         </div>
 
         {/* Error Display */}
-        {error && (
-            <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-6">
-            <p className="text-red-600 text-center">{error}</p>
-            </div>
-        )}
+        {error && <div className="mt-4"><ErrorMessage message={error} /></div>}
 
         {/* Results will go here */}
         {/* ATS Check Results */}
