@@ -4,6 +4,7 @@ from app.models.resume_analysis import ResumeAnalysis
 from app.models.cover_letter import CoverLetter
 from app.models.job_match import JobMatch
 from app.models.ats_check import ATSCheck
+from app.models.job_application import JobApplication
 
 from logging.config import fileConfig
 
