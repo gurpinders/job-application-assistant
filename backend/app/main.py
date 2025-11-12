@@ -14,8 +14,7 @@ app = FastAPI(title="Job Application Assistant API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000",
-                   "https://job-application-assistant-three.vercel.app/"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
