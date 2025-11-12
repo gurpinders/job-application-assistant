@@ -126,7 +126,8 @@ function AddApplicationModal({
               required
               value={formData.company_name}
               onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Google"
             />
           </div>
 
@@ -138,7 +139,8 @@ function AddApplicationModal({
               required
               value={formData.job_title}
               onChange={(e) => setFormData({...formData, job_title: e.target.value})}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Software Engineer"
             />
           </div>
 
@@ -149,7 +151,8 @@ function AddApplicationModal({
               type="url"
               value={formData.job_url}
               onChange={(e) => setFormData({...formData, job_url: e.target.value})}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://..."
             />
           </div>
 
@@ -159,7 +162,7 @@ function AddApplicationModal({
             <select
               value={formData.status}
               onChange={(e) => setFormData({...formData, status: e.target.value})}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="Applied">Applied</option>
               <option value="Interview">Interview</option>
@@ -175,7 +178,8 @@ function AddApplicationModal({
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({...formData, location: e.target.value})}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Toronto, ON"
             />
           </div>
 
@@ -184,10 +188,10 @@ function AddApplicationModal({
             <label className="block text-sm font-semibold mb-1">Salary Range</label>
             <input
               type="text"
-              placeholder="e.g. $80k - $100k"
               value={formData.salary_range}
               onChange={(e) => setFormData({...formData, salary_range: e.target.value})}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., $80k-$100k"
             />
           </div>
 
@@ -199,7 +203,7 @@ function AddApplicationModal({
               required
               value={formData.application_date}
               onChange={(e) => setFormData({...formData, application_date: e.target.value})}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -210,7 +214,8 @@ function AddApplicationModal({
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               rows={3}
-              className="w-full p-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Any additional notes..."
             />
           </div>
 

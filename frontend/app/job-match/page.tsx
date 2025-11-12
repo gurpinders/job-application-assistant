@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import ErrorMessage from '@/components/ErrorMessage'
-import axios from "axios"
 
 interface Resume {
   id: number
@@ -18,165 +17,157 @@ interface MatchResult {
   suggestions: string[]
 }
 
-export default function JobMatchPage(){
-    const [jobDescription, setJobDescription] = useState<string>("")
-    const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null)
-    const [resumes, setResumes] = useState<Resume[]>([]);
-    const [matchResult, setMatchResult] = useState<MatchResult | null>(null)
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-    
-    const { data: session } = useSession()
-    const router = useRouter()
+export default function JobMatchPage() {
+  const { data: session } = useSession()
+  const [resumes, setResumes] = useState<Resume[]>([])
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null)
+  const [jobDescription, setJobDescription] = useState('')
+  const [matchResult, setMatchResult] = useState<MatchResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-    useEffect(() => {
-        const fetchResumes = async () => {
-            if (!session?.user?.id) return;
-
-            try {
-                const response = await axios(`${process.env.NEXT_PUBLIC_API_URL}/api/resume/user/${session?.user?.id}`);
-                setResumes(response.data);
-            } catch {
-                setError("Failed to load resumes");
-            }
-        }
-        
-        fetchResumes()
-    }, [session])
-
-    const handleAnalyze = async () => {
-        if (!jobDescription || !selectedResumeId) {
-            setError("Please fill in all fields")
-            return
-        }
-        
-        setLoading(true)
-        setError(null)
-        
-        try {
-            const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/job-match/analyze?user_id=${session?.user?.id}`,
-            {
-                job_description: jobDescription,
-                resume_id: selectedResumeId
-            }
-            )
-            
-            setMatchResult(response.data)
-        } catch {
-            setError("Failed to analyze job match. Please try again.")
-        } finally {
-            setLoading(false)
-        }
+  useEffect(() => {
+    const fetchResumes = async () => {
+      if (!session?.user?.id) return
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/resume/user/${session.user.id}`
+        )
+        setResumes(response.data)
+      } catch (err) {
+        setError('Failed to load resumes')
+      }
     }
-    return (
+    fetchResumes()
+  }, [session])
+
+  const handleAnalyze = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    setMatchResult(null)
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/job-match/analyze?user_id=${session?.user?.id}`,
+        {
+          resume_id: selectedResumeId,
+          job_description: jobDescription,
+        }
+      )
+      setMatchResult(response.data)
+    } catch (err) {
+      setError('Failed to analyze job match. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getMatchColor = (percentage: number) => {
+    if (percentage >= 70) return 'text-green-600'
+    if (percentage >= 50) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  return (
     <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-4xl mx-auto">
-        {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-md p-8">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Job Match Analyzer</h1>
-            
-            {/* Job Description */}
-            <div className="mb-4">
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Job Match Analyzer</h1>
+
+        <div className="bg-white rounded-lg shadow p-8 mb-8">
+          <form onSubmit={handleAnalyze} className="space-y-6">
+            <div>
+              <label htmlFor="resume" className="block text-sm font-medium text-gray-900 mb-2">
+                Select Resume
+              </label>
+              <select
+                id="resume"
+                value={selectedResumeId || ''}
+                onChange={(e) => setSelectedResumeId(Number(e.target.value))}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Choose a resume</option>
+                {resumes.map((resume) => (
+                  <option key={resume.id} value={resume.id}>
+                    {resume.filename}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="jobDescription" className="block text-sm font-medium text-gray-900 mb-2">
                 Job Description
-            </label>
-            <textarea
+              </label>
+              <textarea
+                id="jobDescription"
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
+                required
+                rows={10}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Paste the job description here..."
-                rows={8}
-                className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+              />
             </div>
 
-            {/* Resume Selector */}
-            <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-                Select Resume
-            </label>
-            <select
-                value={selectedResumeId || ""}
-                onChange={(e) => setSelectedResumeId(Number(e.target.value))}
-                className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-                <option value="">Choose a resume...</option>
-                {resumes.map(resume => (
-                <option key={resume.id} value={resume.id}>
-                    {resume.filename}
-                </option>
-                ))}
-            </select>
-            </div>
+            {error && <ErrorMessage message={error} />}
 
-            {/* Submit Button */}
             <button
-            onClick={handleAnalyze}
-            disabled={loading}
-            className="w-full bg-blue-500 text-white py-3 px-4 rounded font-semibold hover:bg-blue-600 disabled:bg-gray-300 transition"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
             >
-            {loading ? 'Analyzing...' : 'Analyze Match'}
+              {loading ? 'Analyzing...' : 'Analyze Match'}
             </button>
+          </form>
         </div>
-
-        {/* Error Display */}
-        {error && <div className="mt-4"><ErrorMessage message={error} /></div>}
 
         {matchResult && (
-        <div className="mt-6 bg-white rounded-lg shadow-md p-8">
-            {/* Match Percentage */}
-            <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Match Score</h2>
-            <div className="inline-block">
-                <div className={`text-6xl font-bold ${
-                matchResult.match_percentage >= 70 ? 'text-green-600' :
-                matchResult.match_percentage >= 50 ? 'text-yellow-600' :
-                'text-red-600'
-                }`}>
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-8 text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Match Score</h2>
+              <div className={`text-6xl font-bold ${getMatchColor(matchResult.match_percentage)}`}>
                 {matchResult.match_percentage}%
-                </div>
-            </div>
+              </div>
             </div>
 
-            {/* Matching Skills */}
-            <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-3 text-green-700">✓ Matching Skills</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="bg-white rounded-lg shadow p-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Matching Skills</h3>
+              <div className="flex flex-wrap gap-2">
                 {matchResult.matching_skills.map((skill, index) => (
-                <span key={index} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                  <span key={index} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
                     {skill}
-                </span>
+                  </span>
                 ))}
-            </div>
+              </div>
             </div>
 
-            {/* Missing Skills */}
-            <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-3 text-orange-700">⚠ Missing Skills</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="bg-white rounded-lg shadow p-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Missing Skills</h3>
+              <div className="flex flex-wrap gap-2">
                 {matchResult.missing_skills.map((skill, index) => (
-                <span key={index} className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">
+                  <span key={index} className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">
                     {skill}
-                </span>
+                  </span>
                 ))}
-            </div>
+              </div>
             </div>
 
-            {/* Suggestions */}
-            <div>
-            <h3 className="text-xl font-semibold mb-3 text-blue-700">💡 Suggestions</h3>
-            <ul className="list-disc list-inside space-y-2">
+            <div className="bg-white rounded-lg shadow p-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Suggestions</h3>
+              <ul className="space-y-2">
                 {matchResult.suggestions.map((suggestion, index) => (
-                <li key={index} className="text-gray-700">
-                    {suggestion}
-                </li>
+                  <li key={index} className="flex items-start">
+                    <span className="text-blue-600 mr-2">•</span>
+                    <span className="text-gray-900">{suggestion}</span>
+                  </li>
                 ))}
-            </ul>
+              </ul>
             </div>
-        </div>
+          </div>
         )}
-        </div>
+      </div>
     </div>
-    
-    )
+  )
 }
