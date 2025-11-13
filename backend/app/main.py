@@ -57,3 +57,4 @@ async def test_database():
             "status": "error",
             "message": f"Database connection failed: {str(e)}"
         }
+
