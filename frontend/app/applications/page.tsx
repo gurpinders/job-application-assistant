@@ -690,3 +690,6 @@ export default function ApplicationsPage() {
     </div>
     )
 }
+
+
+
