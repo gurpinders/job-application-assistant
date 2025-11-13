@@ -12,16 +12,9 @@ from app.api.application import router as application_router
 
 app = FastAPI(title="Job Application Assistant API")
 
-origins = [
-    "https://job-application-assistant-three.vercel.app/",
-    "https://job-application-assistant-nc2qmpvam.vercel.app",
-    "http://localhost:3000",
-]
-
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,5 +57,3 @@ async def test_database():
             "status": "error",
             "message": f"Database connection failed: {str(e)}"
         }
-# Force redeploy
-
