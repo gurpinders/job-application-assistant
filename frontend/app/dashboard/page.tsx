@@ -256,7 +256,7 @@ export default function Dashboard() {
           }}>
             {[
               {
-                href: '/resume-analyzer',
+                href: '/resume',
                 icon: DocumentTextIcon,
                 title: 'Analyze Resume',
                 description: 'Get AI feedback on your resume',

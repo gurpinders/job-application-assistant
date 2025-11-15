@@ -185,7 +185,7 @@ export default function Home() {
                 icon: '📄',
                 title: 'AI Resume Analyzer',
                 description: 'Get instant, expert-level feedback on your resume. Our AI identifies weaknesses, suggests improvements, and helps you craft the perfect resume.',
-                href: session ? '/resume-analyzer' : '/register',
+                href: session ? '/resume' : '/register',
                 bgColor: 'linear-gradient(135deg, rgba(0, 112, 243, 0.1) 0%, rgba(0, 112, 243, 0.15) 100%)'
               },
               {
@@ -387,3 +387,4 @@ export default function Home() {
     </div>
   )
 }
+
