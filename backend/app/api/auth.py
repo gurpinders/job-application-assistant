@@ -48,3 +48,19 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)) -> dict:
             "full_name": user.full_name
         }
     }
+
+@router.get("/user")
+def get_user_by_email(email: str, db: Session = Depends(get_db)):
+    """
+    Get user by email
+    """
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "created_at": user.created_at.isoformat()
+    }

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from './providers';
-import Navigation from "@/components/Navigation";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,11 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Job Assistant",
-  description: "Assists with Job Finding",
-  icons: {
-    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💼</text></svg>',
-  },
+  title: "AI Job Application Assistant",
+  description: "Land your dream job with AI-powered tools",
 };
 
 export default function RootLayout({
@@ -28,12 +24,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col items-center w-full`}
+        style={{ margin: 0, padding: 0, width: '100%' }}
+      >
         <Providers>
-          <Navigation />
-          {children}
+          <div className="w-full">
+            {children}
+          </div>
         </Providers>
       </body>
     </html>

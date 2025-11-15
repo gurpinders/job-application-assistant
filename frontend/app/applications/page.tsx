@@ -1,695 +1,751 @@
 'use client'
 
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { DndContext,DragEndEvent,DragOverlay,DragStartEvent,PointerSensor,useSensor,useSensors, useDraggable, useDroppable } from '@dnd-kit/core'
-import { CSS } from '@dnd-kit/utilities'
-import axios from "axios"
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import axios from 'axios'
+import {
+  BriefcaseIcon,
+  PlusIcon,
+  XMarkIcon,
+  BuildingOfficeIcon,
+  MapPinIcon,
+  CalendarIcon,
+  DocumentTextIcon,
+  PencilIcon,
+  TrashIcon
+} from '@heroicons/react/24/outline'
 
 interface Application {
   id: number
-  user_id: number
   company_name: string
-  job_title: string
-  job_url?: string
-  status: string
-  location?: string
-  salary_range?: string
-  application_date: string
-  notes?: string
-  created_at: string
-  updated_at: string
-}
-
-interface ApplicationFormData {
-  company_name: string
-  job_title: string
-  job_url: string
-  status: string
+  position: string
   location: string
-  salary_range: string
-  application_date: string
-  notes: string
+  status: 'wishlist' | 'applied' | 'interview' | 'offer' | 'rejected'
+  date_applied: string
+  notes?: string
+  job_url?: string
 }
 
-// Application Card Component
-function ApplicationCard({ application, onDelete, onEdit }: { application: Application, onDelete: (id: number) => void, onEdit: (application: Application) => void }) {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: application.id.toString(),
-        data: application
-    })
+const COLUMNS = [
+  { id: 'wishlist', title: 'Wishlist', color: '#6b7280' },
+  { id: 'applied', title: 'Applied', color: '#0070f3' },
+  { id: 'interview', title: 'Interview', color: '#f59e0b' },
+  { id: 'offer', title: 'Offer', color: '#10b981' },
+  { id: 'rejected', title: 'Rejected', color: '#ef4444' }
+]
 
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        opacity: isDragging ? 0.5 : 1,
-    } : undefined
-    return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-grab active:cursor-grabbing">
-      <h3 className="font-semibold text-gray-900 mb-1">{application.company_name}</h3>
-      <p className="text-sm text-gray-600 mb-2">{application.job_title}</p>
-      
-      {application.location && (
-        <p className="text-xs text-gray-500 mb-1">📍 {application.location}</p>
-      )}
-      
-      {application.salary_range && (
-        <p className="text-xs text-gray-500 mb-2">💰 {application.salary_range}</p>
-      )}
-      
-      <p className="text-xs text-gray-400 mb-3">
-        Applied: {new Date(application.application_date).toLocaleDateString()}
-      </p>
-      
-      <div className="flex gap-2">
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onEdit(application)
-          }}
-          className="flex-1 bg-blue-500 text-white text-sm py-1 px-3 rounded hover:bg-blue-600 transition"
-        >
-          Edit
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete(application.id)
-          }}
-          className="flex-1 bg-red-500 text-white text-sm py-1 px-3 rounded hover:bg-red-600 transition"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  )
-}
+export default function Applications() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [applications, setApplications] = useState<Application[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingApp, setEditingApp] = useState<Application | null>(null)
+  const [draggedApp, setDraggedApp] = useState<Application | null>(null)
 
-// Add Application Modal Component
-function AddApplicationModal({ 
-  isOpen, 
-  onClose, 
-  onAdd 
-}: { 
-  isOpen: boolean
-  onClose: () => void
-  onAdd: (application: ApplicationFormData) => void
-}) {
   const [formData, setFormData] = useState({
     company_name: '',
-    job_title: '',
-    job_url: '',
-    status: 'Applied',
+    position: '',
     location: '',
-    salary_range: '',
-    application_date: new Date().toISOString().split('T')[0],
+    status: 'wishlist' as Application['status'],
+    job_url: '',
     notes: ''
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onAdd(formData)
-  }
-
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Add New Application</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Company Name */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Company Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.company_name}
-              onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Google"
-            />
-          </div>
-
-          {/* Job Title */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Job Title *</label>
-            <input
-              type="text"
-              required
-              value={formData.job_title}
-              onChange={(e) => setFormData({...formData, job_title: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Software Engineer"
-            />
-          </div>
-
-          {/* Job URL */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Job URL</label>
-            <input
-              type="url"
-              value={formData.job_url}
-              onChange={(e) => setFormData({...formData, job_url: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://..."
-            />
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Status *</label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({...formData, status: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Applied">Applied</option>
-              <option value="Interview">Interview</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Location</label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => setFormData({...formData, location: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Toronto, ON"
-            />
-          </div>
-
-          {/* Salary Range */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Salary Range</label>
-            <input
-              type="text"
-              value={formData.salary_range}
-              onChange={(e) => setFormData({...formData, salary_range: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., $80k-$100k"
-            />
-          </div>
-
-          {/* Application Date */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Application Date *</label>
-            <input
-              type="date"
-              required
-              value={formData.application_date}
-              onChange={(e) => setFormData({...formData, application_date: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Notes</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Any additional notes..."
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
-            >
-              Add Application
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// Edit Application Modal Component
-function EditApplicationModal({ 
-  isOpen, 
-  onClose, 
-  onUpdate,
-  application
-}: { 
-  isOpen: boolean
-  onClose: () => void
-  onUpdate: (id: number, data: ApplicationFormData) => void
-  application: Application
-}) {
-  const [formData, setFormData] = useState<ApplicationFormData>({
-    company_name: application.company_name,
-    job_title: application.job_title,
-    job_url: application.job_url || '',
-    status: application.status,
-    location: application.location || '',
-    salary_range: application.salary_range || '',
-    application_date: application.application_date.split('T')[0],
-    notes: application.notes || ''
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onUpdate(application.id, formData)
-  }
-
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Edit Application</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Same form fields as AddApplicationModal */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Company Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.company_name}
-              onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Job Title *</label>
-            <input
-              type="text"
-              required
-              value={formData.job_title}
-              onChange={(e) => setFormData({...formData, job_title: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Job URL</label>
-            <input
-              type="url"
-              value={formData.job_url}
-              onChange={(e) => setFormData({...formData, job_url: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Status *</label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({...formData, status: e.target.value})}
-              className="w-full p-2 border rounded"
-            >
-              <option value="Applied">Applied</option>
-              <option value="Interview">Interview</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Location</label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => setFormData({...formData, location: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Salary Range</label>
-            <input
-              type="text"
-              placeholder="e.g. $80k - $100k"
-              value={formData.salary_range}
-              onChange={(e) => setFormData({...formData, salary_range: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Application Date *</label>
-            <input
-              type="date"
-              required
-              value={formData.application_date}
-              onChange={(e) => setFormData({...formData, application_date: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Notes</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              rows={3}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
-            >
-              Update Application
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// Droppable Column Component
-    function DroppableColumn({
-    id,
-    title,
-    count,
-    color,
-    children
-    }: {
-    id: string
-    title: string
-    count: number
-    color: string
-    children: React.ReactNode
-    }) {
-        const { setNodeRef, isOver } = useDroppable({ id })
-
-        return (
-            <div
-            ref={setNodeRef}
-            className={`bg-white rounded-lg shadow p-4 transition-colors ${
-                isOver ? 'ring-2 ring-blue-400 bg-blue-50' : ''
-            }`}
-            >
-            <h2 className={`text-lg font-semibold mb-4 ${color}`}>
-                {title} ({count})
-            </h2>
-            <div className="space-y-3">{children}</div>
-            </div>
-        )
-    }
-
-export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<Application[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showAddModal, setShowAddModal] = useState<boolean>(false)
-  const [showEditModal, setShowEditModal] = useState<boolean>(false)
-  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
-  const [activeId, setActiveId] = useState<number | null>(null)
-
-  const { data: session } = useSession()
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-        activationConstraint: {
-        distance: 8,
-        },
-    })
-    )
-
   useEffect(() => {
-    const fetchApplications = async () => {
-        if (!session?.user?.id) {
-        setLoading(false)
-        return
-        }
-        
-        try {
-        const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/applications/user/${session.user.id}`
-        )
-        setApplications(response.data)
-        } catch {
-        setError("Failed to load applications")
-        } finally {
-        setLoading(false)
-        }
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    } else if (status === 'authenticated') {
+      fetchApplications()
     }
-    fetchApplications()
-    }, [session])
+  }, [status, router])
 
-    const handleAddApplication = async (formData: ApplicationFormData) => {
-        try {
-            const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/applications?user_id=${session?.user?.id}`,
-            formData
-            )
-            
-            // Add new application to state
-            setApplications([response.data, ...applications])
-            setShowAddModal(false)
-        } catch {
-            setError("Failed to create application")
-        }
-    }
-
-    const handleDeleteApplication = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this application?")) {
-            return
-        }
-        
-        try {
-            await axios.delete(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/applications/${id}?user_id=${session?.user?.id}`
-            )
-            
-            // Remove from state
-            setApplications(applications.filter(app => app.id !== id))
-        } catch {
-            setError("Failed to delete application")
-        }
-    }
-
-    const handleUpdateApplication = async (id: number, formData: ApplicationFormData) => {
-        try {
-            const response = await axios.put(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/applications/${id}?user_id=${session?.user?.id}`,
-            formData
-            )
-            
-            // Update in state
-            setApplications(applications.map(app => 
-            app.id === id ? response.data : app
-            ))
-            setShowEditModal(false)
-            setSelectedApplication(null)
-        } catch {
-            setError("Failed to update application")
-        }
-    }
-
-    const handleEdit = (application: Application) => {
-        setSelectedApplication(application)
-        setShowEditModal(true)
-    }
-
-    const handleDragStart = (event: DragStartEvent) => {
-        setActiveId(Number(event.active.id))
-    }
-
-    const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    
-    if (!over) {
-        setActiveId(null)
-        return
-    }
-    
-    const applicationId = Number(active.id)
-    const newStatus = over.id as string
-    
-    // Find the application
-    const application = applications.find(app => app.id === applicationId)
-    
-    if (!application || application.status === newStatus) {
-        setActiveId(null)
-        return
-    }
-    
-    // Optimistically update UI
-    setApplications(applications.map(app =>
-        app.id === applicationId ? { ...app, status: newStatus } : app
-    ))
-    
-    // Update backend
+  const fetchApplications = async () => {
     try {
-        await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/applications/${applicationId}/status?user_id=${session?.user?.id}&status_value=${newStatus}`
-        )
-    } catch {
-        // Revert on error
-        setApplications(applications.map(app =>
-        app.id === applicationId ? { ...app, status: application.status } : app
-        ))
-        setError("Failed to update status")
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const userResponse = await axios.get(`${apiUrl}/api/auth/user`, {
+        params: { email: session?.user?.email }
+      })
+      const userId = userResponse.data.id
+
+      const response = await axios.get(`${apiUrl}/api/applications/user/${userId}`)
+      setApplications(response.data)
+    } catch (error) {
+      console.error('Error fetching applications:', error)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     
-    setActiveId(null)
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const userResponse = await axios.get(`${apiUrl}/api/auth/user`, {
+        params: { email: session?.user?.email }
+      })
+      const userId = userResponse.data.id
+
+      if (editingApp) {
+        await axios.put(`${apiUrl}/api/applications/${editingApp.id}`, {
+          ...formData,
+          user_id: userId
+        })
+      } else {
+        await axios.post(`${apiUrl}/api/applications`, {
+          ...formData,
+          user_id: userId
+        })
+      }
+
+      fetchApplications()
+      setShowAddModal(false)
+      setEditingApp(null)
+      setFormData({
+        company_name: '',
+        position: '',
+        location: '',
+        status: 'wishlist',
+        job_url: '',
+        notes: ''
+      })
+    } catch (error) {
+      console.error('Error saving application:', error)
     }
-    
-    const getApplicationsByStatus = (status: string) => {
-        return applications.filter(app => app.status === status)
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this application?')) return
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      await axios.delete(`${apiUrl}/api/applications/${id}`)
+      fetchApplications()
+    } catch (error) {
+      console.error('Error deleting application:', error)
     }
+  }
+
+  const handleDragStart = (app: Application) => {
+    setDraggedApp(app)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = async (newStatus: Application['status']) => {
+    if (!draggedApp) return
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      await axios.put(`${apiUrl}/api/applications/${draggedApp.id}`, {
+        ...draggedApp,
+        status: newStatus
+      })
+      fetchApplications()
+      setDraggedApp(null)
+    } catch (error) {
+      console.error('Error updating status:', error)
+    }
+  }
+
+  const getApplicationsByStatus = (status: Application['status']) => {
+    return applications.filter(app => app.status === status)
+  }
 
   if (loading) {
     return (
-        <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl text-gray-600">Loading applications...</p>
-        </div>
+      <div style={{ minHeight: '100vh', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '3px solid #f0f0f0',
+          borderTop: '3px solid #0070f3',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <style jsx>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
     )
-    }
+  }
 
-    return (
-    <div className="min-h-screen bg-gray-50 p-8">
-        <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">Application Tracker</h1>
-            <button
-            onClick={() => setShowAddModal(true)}
-            className="rounded bg-blue-500 px-6 py-2 text-white font-semibold hover:bg-blue-600 transition"
-            >
-            + Add Application
-            </button>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600 text-center">{error}</p>
+  return (
+    <div style={{ minHeight: '100vh', background: '#fafafa', paddingBottom: '80px' }}>
+      {/* Hero Section */}
+      <div style={{
+        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+        padding: '60px 0',
+        marginBottom: '40px'
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <BriefcaseIcon style={{ width: '32px', height: '32px', color: 'white' }} />
+                <h1 style={{
+                  fontSize: '42px',
+                  fontWeight: 800,
+                  color: 'white',
+                  margin: 0,
+                  letterSpacing: '-1px'
+                }}>
+                  Application Tracker
+                </h1>
+              </div>
+              <p style={{ fontSize: '18px', color: 'rgba(255, 255, 255, 0.9)', margin: 0 }}>
+                Manage your job applications with a visual Kanban board
+              </p>
             </div>
-        )}
-
-        {/* Kanban Board */}
-        <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Applied Column */}
-            <DroppableColumn
-            id="Applied"
-            title="Applied"
-            count={getApplicationsByStatus('Applied').length}
-            color="text-gray-700"
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="btn-primary"
+              style={{
+                background: 'white',
+                color: '#f59e0b',
+                display: 'inline-flex'
+              }}
             >
-            {getApplicationsByStatus('Applied').map(app => (
-                <ApplicationCard 
-                key={app.id} 
-                application={app} 
-                onDelete={handleDeleteApplication} 
-                onEdit={handleEdit}
-                />
-            ))}
-            </DroppableColumn>
-
-            {/* Interview Column */}
-            <DroppableColumn
-            id="Interview"
-            title="Interview"
-            count={getApplicationsByStatus('Interview').length}
-            color="text-blue-700"
-            >
-            {getApplicationsByStatus('Interview').map(app => (
-                <ApplicationCard 
-                key={app.id} 
-                application={app} 
-                onDelete={handleDeleteApplication} 
-                onEdit={handleEdit}
-                />
-            ))}
-            </DroppableColumn>
-
-            {/* Offer Column */}
-            <DroppableColumn
-            id="Offer"
-            title="Offer"
-            count={getApplicationsByStatus('Offer').length}
-            color="text-green-700"
-            >
-            {getApplicationsByStatus('Offer').map(app => (
-                <ApplicationCard 
-                key={app.id} 
-                application={app} 
-                onDelete={handleDeleteApplication} 
-                onEdit={handleEdit}
-                />
-            ))}
-            </DroppableColumn>
-
-            {/* Rejected Column */}
-            <DroppableColumn
-            id="Rejected"
-            title="Rejected"
-            count={getApplicationsByStatus('Rejected').length}
-            color="text-red-700"
-            >
-            {getApplicationsByStatus('Rejected').map(app => (
-                <ApplicationCard 
-                key={app.id} 
-                application={app} 
-                onDelete={handleDeleteApplication} 
-                onEdit={handleEdit}
-                />
-            ))}
-            </DroppableColumn>
+              <PlusIcon style={{ width: '18px', height: '18px' }} />
+              Add Application
+            </button>
+          </div>
         </div>
-        </DndContext>
-        
-        {/* Modals will go here */}
-        {showAddModal && (
-        <AddApplicationModal
-            isOpen={showAddModal}
-            onClose={() => setShowAddModal(false)}
-            onAdd={handleAddApplication}
-        />
-        )}
-        {showEditModal && selectedApplication && (
-        <EditApplicationModal
-            isOpen={showEditModal}
-            onClose={() => {
-            setShowEditModal(false)
-            setSelectedApplication(null)
+      </div>
+
+      {/* Kanban Board */}
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 40px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '24px'
+        }}>
+          {COLUMNS.map(column => (
+            <div
+              key={column.id}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(column.id as Application['status'])}
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '20px',
+                border: '1.5px solid #f0f0f0',
+                minHeight: '500px'
+              }}
+            >
+              {/* Column Header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '20px',
+                paddingBottom: '16px',
+                borderBottom: `3px solid ${column.color}`
+              }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 800,
+                  color: '#1a1a1a',
+                  margin: 0,
+                  letterSpacing: '-0.3px'
+                }}>
+                  {column.title}
+                </h3>
+                <div style={{
+                  background: column.color,
+                  color: 'white',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  fontWeight: 700
+                }}>
+                  {getApplicationsByStatus(column.id as Application['status']).length}
+                </div>
+              </div>
+
+              {/* Application Cards */}
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {getApplicationsByStatus(column.id as Application['status']).map(app => (
+                  <div
+                    key={app.id}
+                    draggable
+                    onDragStart={() => handleDragStart(app)}
+                    style={{
+                      background: '#fafafa',
+                      border: '1.5px solid #e0e0e0',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      cursor: 'grab',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = column.color
+                      e.currentTarget.style.boxShadow = `0 4px 12px ${column.color}20`
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#e0e0e0'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
+                  >
+                    <div style={{ marginBottom: '12px' }}>
+                      <h4 style={{
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        color: '#1a1a1a',
+                        marginBottom: '4px'
+                      }}>
+                        {app.position}
+                      </h4>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        color: '#666',
+                        fontSize: '14px',
+                        marginBottom: '8px'
+                      }}>
+                        <BuildingOfficeIcon style={{ width: '16px', height: '16px' }} />
+                        {app.company_name}
+                      </div>
+                      {app.location && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          color: '#666',
+                          fontSize: '13px',
+                          marginBottom: '8px'
+                        }}>
+                          <MapPinIcon style={{ width: '14px', height: '14px' }} />
+                          {app.location}
+                        </div>
+                      )}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        color: '#999',
+                        fontSize: '12px'
+                      }}>
+                        <CalendarIcon style={{ width: '14px', height: '14px' }} />
+                        {new Date(app.date_applied).toLocaleDateString()}
+                      </div>
+                    </div>
+
+                    {app.notes && (
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#666',
+                        marginBottom: '12px',
+                        lineHeight: 1.5,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {app.notes}
+                      </p>
+                    )}
+
+                    <div style={{
+                      display: 'flex',
+                      gap: '8px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid #e0e0e0'
+                    }}>
+                      <button
+                        onClick={() => {
+                          setEditingApp(app)
+                          setFormData({
+                            company_name: app.company_name,
+                            position: app.position,
+                            location: app.location,
+                            status: app.status,
+                            job_url: app.job_url || '',
+                            notes: app.notes || ''
+                          })
+                          setShowAddModal(true)
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '6px',
+                          background: 'white',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#666',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#0070f3'
+                          e.currentTarget.style.color = '#0070f3'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#e0e0e0'
+                          e.currentTarget.style.color = '#666'
+                        }}
+                      >
+                        <PencilIcon style={{ width: '14px', height: '14px' }} />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(app.id)}
+                        style={{
+                          flex: 1,
+                          padding: '6px',
+                          background: 'white',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#666',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#ef4444'
+                          e.currentTarget.style.color = '#ef4444'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#e0e0e0'
+                          e.currentTarget.style.color = '#666'
+                        }}
+                      >
+                        <TrashIcon style={{ width: '14px', height: '14px' }} />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {getApplicationsByStatus(column.id as Application['status']).length === 0 && (
+                  <div style={{
+                    padding: '40px 20px',
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: '14px'
+                  }}>
+                    No applications yet
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }} onClick={() => {
+          setShowAddModal(false)
+          setEditingApp(null)
+        }}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '24px',
+              padding: '40px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto'
             }}
-            onUpdate={handleUpdateApplication}
-            application={selectedApplication}
-        />
-        )}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '32px'
+            }}>
+              <h2 style={{
+                fontSize: '28px',
+                fontWeight: 800,
+                color: '#1a1a1a',
+                margin: 0
+              }}>
+                {editingApp ? 'Edit Application' : 'Add Application'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false)
+                  setEditingApp(null)
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '8px',
+                  color: '#999'
+                }}
+              >
+                <XMarkIcon style={{ width: '24px', height: '24px' }} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    marginBottom: '8px'
+                  }}>
+                    Company Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.company_name}
+                    onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '15px',
+                      border: '1.5px solid #e0e0e0',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      transition: 'all 0.2s'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0070f3'
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 112, 243, 0.1)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e0e0e0'
+                      e.target.style.boxShadow = 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    marginBottom: '8px'
+                  }}>
+                    Position *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.position}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '15px',
+                      border: '1.5px solid #e0e0e0',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      transition: 'all 0.2s'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0070f3'
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 112, 243, 0.1)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e0e0e0'
+                      e.target.style.boxShadow = 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    marginBottom: '8px'
+                  }}>
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '15px',
+                      border: '1.5px solid #e0e0e0',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      transition: 'all 0.2s'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0070f3'
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 112, 243, 0.1)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e0e0e0'
+                      e.target.style.boxShadow = 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    marginBottom: '8px'
+                  }}>
+                    Status *
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as Application['status'] })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '15px',
+                      border: '1.5px solid #e0e0e0',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      background: 'white'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0070f3'
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 112, 243, 0.1)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e0e0e0'
+                      e.target.style.boxShadow = 'none'
+                    }}
+                  >
+                    {COLUMNS.map(col => (
+                      <option key={col.id} value={col.id}>{col.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    marginBottom: '8px'
+                  }}>
+                    Job URL
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.job_url}
+                    onChange={(e) => setFormData({ ...formData, job_url: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '15px',
+                      border: '1.5px solid #e0e0e0',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      transition: 'all 0.2s'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0070f3'
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 112, 243, 0.1)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e0e0e0'
+                      e.target.style.boxShadow = 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    marginBottom: '8px'
+                  }}>
+                    Notes
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    rows={4}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '15px',
+                      border: '1.5px solid #e0e0e0',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                      resize: 'vertical',
+                      fontFamily: 'inherit'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0070f3'
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 112, 243, 0.1)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e0e0e0'
+                      e.target.style.boxShadow = 'none'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn-primary"
+                style={{
+                  width: '100%',
+                  marginTop: '24px',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                {editingApp ? 'Update Application' : 'Add Application'}
+              </button>
+            </form>
+          </div>
         </div>
+      )}
     </div>
-    )
+  )
 }
-
-
-
